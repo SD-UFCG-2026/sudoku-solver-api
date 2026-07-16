@@ -6,7 +6,5 @@ public interface IBoardPersisterService
 
     public BoardRun Get(int id);
 
-    public BoardRun Finish(int id, BoardNode finalNode);
-
     public BoardRun Delete(int id);
 }

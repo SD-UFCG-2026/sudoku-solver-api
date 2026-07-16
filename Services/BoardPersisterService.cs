@@ -14,11 +14,6 @@ public class BoardPersisterService : IBoardPersisterService
         throw new NotImplementedException();
     }
 
-    public BoardRun Finish(int id, BoardNode finalNode)
-    {
-        throw new NotImplementedException();
-    }
-
     public BoardRun Delete(int id)
     {
         throw new NotImplementedException();
