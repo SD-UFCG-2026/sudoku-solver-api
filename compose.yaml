@@ -1,0 +1,7 @@
+﻿services:
+  api:
+    image: ghcr.io/sd-ufcg-2026/sudoku-solver-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+
