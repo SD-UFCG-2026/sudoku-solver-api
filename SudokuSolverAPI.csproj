@@ -11,4 +11,14 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="BackgroundJobs\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="appsettings.json">
+      <DependentUpon>compose.yaml</DependentUpon>
+    </Content>
+  </ItemGroup>
+
 </Project>
