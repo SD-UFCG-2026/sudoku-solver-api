@@ -4,16 +4,16 @@ public class Board(int[,] sudokuBoard, Signature signature)
 {
     public int[,] SudokuBoard { get; } = sudokuBoard;
 
-    public int Dimension => (int)Math.Sqrt(SudokuBoard.Length);
+    public int Dimension => (int)Math.Sqrt(SudokuBoard.GetLength(0));
 
     public int[,] Rows => SudokuBoard;
     public int[,] Cols
     {
         get
         {
-            var cols = new int[SudokuBoard.Length, SudokuBoard.Length];
-            for (int i = 0; i < SudokuBoard.Length; i++)
-            for (int j = 0; j < SudokuBoard.Length; j++)
+            var cols = new int[SudokuBoard.GetLength(0), SudokuBoard.GetLength(1)];
+            for (int i = 0; i < SudokuBoard.GetLength(0); i++)
+            for (int j = 0; j < SudokuBoard.GetLength(1); j++)
                 cols[i,j] = SudokuBoard[j,i];
             return cols;
         }
@@ -24,7 +24,7 @@ public class Board(int[,] sudokuBoard, Signature signature)
         get
         {
             var dimensions = Dimension;
-            var qs = new int[SudokuBoard.Length, SudokuBoard.Length];
+            var qs = new int[SudokuBoard.GetLength(0), SudokuBoard.GetLength(1)];
             var qs1 = 0;
             for (var rowDiff = 0; rowDiff < dimensions; rowDiff++)
             for (var colDiff = 0; colDiff < dimensions; colDiff++)
@@ -44,10 +44,10 @@ public class Board(int[,] sudokuBoard, Signature signature)
     {
         get
         {
-            var arr = new string[(int) Math.Pow(SudokuBoard.Length, 2)];
+            var arr = new string[(int) Math.Pow(SudokuBoard.GetLength(0), 2)];
             var idx = 0;
-            for (var i = 0; i < SudokuBoard.Length; i++)
-            for (var j = 0; j < SudokuBoard.Length; j++)
+            for (var i = 0; i < SudokuBoard.GetLength(0); i++)
+            for (var j = 0; j < SudokuBoard.GetLength(1); j++)
                 arr[idx++] = SudokuBoard[i, j].ToString();
             return string.Join(' ', arr);
         }

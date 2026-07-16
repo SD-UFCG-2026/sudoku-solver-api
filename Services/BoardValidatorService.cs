@@ -21,12 +21,12 @@ public class BoardValidatorService: IBoardValidatorService
 
     private bool IsValid(int[,] lines)
     {
-        for (int i = 0; i < lines.Length; i++)
+        for (int i = 0; i < lines.GetLength(0); i++)
         {
-            var numbers = new bool[lines.Length];
-            for (int k = 0; k < numbers.Length; k++)
+            var numbers = new bool[lines.GetLength(1)];
+            for (int k = 0; k < numbers.GetLength(1); k++)
                 numbers[k] = false;
-            for (int j = 0; j < lines.Length; j++)
+            for (int j = 0; j < lines.GetLength(1); j++)
             {
                 var n = lines[i, j] - 1;
                 if (n == -1) continue;
@@ -43,8 +43,8 @@ public class BoardValidatorService: IBoardValidatorService
         var rowsRoot = root.Rows;
         var rowsNode = node.Rows;
 
-        for (int i = 0; i < rowsRoot.Length; i++)
-            for (int j = 0; j < rowsNode.Length; j++)
+        for (int i = 0; i < rowsRoot.GetLength(0); i++)
+            for (int j = 0; j < rowsNode.GetLength(1); j++)
                 if (rowsRoot[i, j] != 0
                     && rowsRoot[i, j] != rowsNode[i, j])
                     return false;
