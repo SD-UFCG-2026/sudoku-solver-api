@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using SudokuSolverAPI.DTOs;
 
 namespace SudokuSolverAPI.Controllers;
 
@@ -8,13 +9,13 @@ namespace SudokuSolverAPI.Controllers;
 public class RunController : ControllerBase
 {
 
-    [HttpGet]
-    public IActionResult Get()
+    [HttpGet("{id}")]
+    public IActionResult Get(int id)
     {
         return StatusCode(StatusCodes.Status503ServiceUnavailable);
     }
 
-    [HttpPost]
+    [HttpPost("{id}")]
     public IActionResult Post()
     {
         return NoContent();
