@@ -7,7 +7,7 @@ using SudokuSolverAPI.Interfaces;
 namespace SudokuSolverAPI.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/sudoku/")]
 public class RunController(
     ValidationChannel validationChannel,
     IBoardPersisterService persisterService) : ControllerBase
@@ -16,8 +16,15 @@ public class RunController(
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        var run = await persisterService.Get(id);
-        return Ok(run.toDTO());
+        try
+        {
+            var run = await persisterService.Get(id);
+            return Ok(run.toDTO());
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound();
+        }
     }
 
     [HttpPost("{id}")]
