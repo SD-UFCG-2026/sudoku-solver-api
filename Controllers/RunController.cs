@@ -1,23 +1,35 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using SudokuSolverAPI.Channels;
 using SudokuSolverAPI.DTOs;
+using SudokuSolverAPI.Interfaces;
 
 namespace SudokuSolverAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class RunController : ControllerBase
+public class RunController(
+    ValidationChannel validationChannel,
+    IBoardPersisterService persisterService) : ControllerBase
 {
 
     [HttpGet("{id}")]
-    public IActionResult Get(int id)
+    public async Task<IActionResult> Get(int id)
     {
-        return StatusCode(StatusCodes.Status503ServiceUnavailable);
+        var run = await persisterService.Get(id);
+        return Ok(run.toDTO());
     }
 
     [HttpPost("{id}")]
-    public IActionResult Post()
+    public IActionResult Post(
+        int id,
+        [FromBody] BoardDto boardDto)
     {
-        return NoContent();
+        if (!validationChannel.Writer.TryWrite(new ValidationData(id, boardDto)))
+        {
+            return StatusCode(StatusCodes.Status429TooManyRequests);
+        }
+
+        return Accepted();
     }
 }
