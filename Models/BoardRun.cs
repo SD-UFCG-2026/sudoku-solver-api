@@ -1,13 +1,19 @@
+using SudokuSolverAPI.DTOs;
+
 namespace SudokuSolverAPI;
 
-public class BoardRun(BoardNode root)
+public class BoardRun(int id, BoardNode root)
 {
-    public int Id { get; set; }
-    public BoardNode Root { get; }
+    public int Id { get; set; } = id;
+    public BoardNode Root { get; } = root;
 
     public ISet<string> Boards { get; set; } = new HashSet<string>();
 
     public bool IsResolved { get; set; } = false;
     public BoardNode? Final { get; set; } = null;
 
+    public RunDto toDTO()
+    {
+        return new RunDto(Root.toDTO(), IsResolved, Final?.toDTO());
+    }
 }

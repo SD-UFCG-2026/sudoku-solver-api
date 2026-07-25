@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using SudokuSolverAPI.Interfaces;
 using SudokuSolverAPI.Utils;
 
@@ -5,19 +6,20 @@ namespace SudokuSolverAPI.Services;
 
 public class BoardValidatorService: IBoardValidatorService
 {
+    private readonly ConcurrentDictionary<string, byte> _processedHashes = new();
+
     public bool IsValid(BoardRun run, Board board)
     {
         string stringValue = board.SudokuVisualize;
 
-        if (!run.Boards.Add(stringValue)) return false;
+        if (!_processedHashes.TryAdd(stringValue, 0)) return false;
 
-        if (!IsValid(board.Rows)) return false;
-        if (!IsValid(board.Cols)) return false;
-        if (!IsValid(board.Qs)) return false;
+        run.Boards.Add(stringValue);
 
-        if (!Casuality.IsCasualTo(run.Root.Value, board)) return false;
-
-        return true;
+        return IsValid(board.Rows)
+            && IsValid(board.Cols)
+            && IsValid(board.Qs)
+            && Casuality.IsCasualTo(run.Root.Value, board);
     }
 
     private bool IsValid(int[,] lines)

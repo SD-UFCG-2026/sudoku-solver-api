@@ -27,7 +27,6 @@ public class BoardProcesserService : IBoardProcesserService
         if (bestParent != null)
         {
             bestParent.Nodes.Add(node);
-            node.Root = bestParent;
 
             for (int i = bestParent.Nodes.Count - 2; i >= 0 ; i--)
             {
@@ -36,7 +35,6 @@ public class BoardProcesserService : IBoardProcesserService
                 {
                     bestParent.Nodes.RemoveAt(i);
                     node.Nodes.Add(sibling);
-                    sibling.Root = node;
                 }
             }
         }

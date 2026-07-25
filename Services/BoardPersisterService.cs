@@ -1,21 +1,33 @@
+using System.Collections.Concurrent;
 using SudokuSolverAPI.Interfaces;
 
 namespace SudokuSolverAPI.Services;
 
 public class BoardPersisterService : IBoardPersisterService
 {
-    public BoardRun SaveRun(BoardRun run)
+    private ConcurrentDictionary<int, BoardRun> BoardMap = [];
+    public Task<BoardRun> SaveRun(BoardRun run)
     {
-        throw new NotImplementedException();
+        try
+        {
+            BoardMap.GetOrAdd(run.Id, _ => run);
+            return Task.FromResult(run);
+        }
+        catch (Exception exception)
+        {
+            return Task.FromException<BoardRun>(exception);
+        }
     }
 
-    public BoardRun Get(int id)
+    public Task<BoardRun> Get(int id)
     {
-        throw new NotImplementedException();
-    }
-
-    public BoardRun Delete(int id)
-    {
-        throw new NotImplementedException();
+        try
+        {
+            return Task.FromResult(BoardMap[id]);
+        }
+        catch (Exception exception)
+        {
+            return Task.FromException<BoardRun>(exception);
+        }
     }
 }

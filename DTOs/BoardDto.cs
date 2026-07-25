@@ -2,7 +2,10 @@ namespace SudokuSolverAPI.DTOs;
 
 public record BoardDto (int[,] Board, Signature Signature)
 {
-
+    public Board ToEntity()
+    {
+        return new Board(Board, Signature);
+    }
 }
 
 /*

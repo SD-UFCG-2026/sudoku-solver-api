@@ -1,3 +1,5 @@
+using SudokuSolverAPI.DTOs;
+
 namespace SudokuSolverAPI;
 
 public class Board(int[,] sudokuBoard, Signature signature)
@@ -53,4 +55,9 @@ public class Board(int[,] sudokuBoard, Signature signature)
         }
     }
     public Signature Signature { get; } = signature;
+
+    public BoardDto toDTO()
+    {
+        return new BoardDto(SudokuBoard, Signature);
+    }
 }
