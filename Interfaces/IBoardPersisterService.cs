@@ -2,9 +2,7 @@ namespace SudokuSolverAPI.Interfaces;
 
 public interface IBoardPersisterService
 {
-    public BoardRun SaveRun(BoardRun run);
+    public Task<BoardRun> SaveRun(BoardRun run);
 
-    public BoardRun Get(int id);
-
-    public BoardRun Delete(int id);
+    public Task<BoardRun> Get(int id);
 }
