@@ -1,10 +1,7 @@
-using System.Text.Json.Serialization;
-using SudokuSolverAPI.Utils;
-
 namespace SudokuSolverAPI.DTOs;
 
 public record BoardDto (
-    [property: JsonConverter(typeof(MultidimensionalArrayConverter))] int[,] Board,
+    int[,] Board,
     Signature Signature)
 {
     public Board ToEntity()
