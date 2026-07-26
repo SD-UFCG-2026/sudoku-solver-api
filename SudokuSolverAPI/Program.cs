@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using MongoDB.Driver;
 using SudokuSolverAPI.BackgroundServices;
 using SudokuSolverAPI.Channels;
@@ -10,6 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 string corsConfiguration = builder.Configuration["CORS_ORIGIN"] ?? "*";
 
+if (!int.TryParse(builder.Configuration["PERMIT_LIMIT"], out var permitLimit))
+{
+    permitLimit = 10;
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
@@ -19,6 +25,32 @@ builder.Services.AddCors(options =>
                 .AllowAnyHeader()
                 .WithMethods("GET", "POST");
         });
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var clientIp = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                       ?? context.Connection.RemoteIpAddress?.ToString()
+                       ?? new Random().Next().ToString();
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clientIp,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+    });
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsync("{\"error\": \"Too many requests. Please try again in 1 minute.\"}", cancellationToken);
+    };
 });
 
 MongoConfig.RegisterCustomSerializers();
