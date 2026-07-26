@@ -39,4 +39,12 @@ public class RunController(
 
         return Accepted();
     }
+
+    [HttpGet()]
+    public async Task<IActionResult> GetAll()
+    {
+        var allEntites = await persisterService.GetAll();
+
+        return Ok(allEntites);
+    }
 }

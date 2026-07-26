@@ -57,4 +57,18 @@ public class BoardPersisterService(
         }
 
     }
+
+    public async Task<List<BoardRun>> GetAll()
+    {
+        try
+        {
+            var runs = await _collection.Find(_ => true).ToListAsync();
+
+            return runs;
+        }
+        catch (Exception exception)
+        {
+            throw new Exception("Search all on mongo error:", exception);
+        }
+    }
 }
