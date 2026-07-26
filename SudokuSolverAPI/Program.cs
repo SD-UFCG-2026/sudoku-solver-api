@@ -8,6 +8,19 @@ using SudokuSolverAPI.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
+string corsConfiguration = builder.Configuration["CORS_ORIGIN"] ?? "*";
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.WithOrigins(corsConfiguration)
+                .AllowAnyHeader()
+                .WithMethods("GET", "POST");
+        });
+});
+
 MongoConfig.RegisterCustomSerializers();
 
 builder.Services.AddControllers()
