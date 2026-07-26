@@ -38,7 +38,7 @@ public class BoardValidatorService: IBoardValidatorService
         for (int i = 0; i < lines.GetLength(0); i++)
         {
             var numbers = new bool[lines.GetLength(1)];
-            for (int k = 0; k < numbers.GetLength(1); k++)
+            for (int k = 0; k < lines.GetLength(1); k++)
                 numbers[k] = false;
             for (int j = 0; j < lines.GetLength(1); j++)
             {
