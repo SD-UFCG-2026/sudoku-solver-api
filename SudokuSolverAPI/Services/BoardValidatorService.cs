@@ -16,7 +16,7 @@ public class BoardValidatorService: IBoardValidatorService
 
         if (!_processedHashes.TryAdd(stringValue, 0)) return false;
 
-        run.Boards.Add(stringValue);
+        if (!run.Boards.Add(stringValue)) return false;
 
         return SameLength(run, board)
             && IsValid(board.Rows)
