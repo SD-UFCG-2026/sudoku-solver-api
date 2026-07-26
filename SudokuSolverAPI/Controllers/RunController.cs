@@ -10,7 +10,8 @@ namespace SudokuSolverAPI.Controllers;
 [Route("api/sudoku/")]
 public class RunController(
     ValidationChannel validationChannel,
-    IBoardPersisterService persisterService) : ControllerBase
+    IBoardPersisterService persisterService,
+    ILogger<RunController> logger) : ControllerBase
 {
 
     [HttpGet("{id}")]
@@ -34,6 +35,7 @@ public class RunController(
     {
         if (!validationChannel.Writer.TryWrite(new ValidationData(id, boardDto)))
         {
+            logger.LogInformation($"Request from: {boardDto.Signature.Identifier} was lost from Validation Channel.");
             return StatusCode(StatusCodes.Status429TooManyRequests);
         }
 

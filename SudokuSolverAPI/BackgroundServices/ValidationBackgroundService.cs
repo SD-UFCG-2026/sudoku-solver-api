@@ -41,9 +41,16 @@ public class ValidationBackgroundService(
                     var run = await lazyRunTask.Value;
 
                     if (boardValidatorService.IsValid(run, dto.board.ToEntity()))
+                    {
+                        logger.LogInformation($"Board contributed from ${dto.board.Signature.Identifier} was validated on run ${dto.id}");
                         await processingChannel.Writer.WriteAsync(
                             new ProcessingData(dto.id, new BoardNode(dto.board.ToEntity()))
                             , ctx);
+                    }
+                    else
+                    {
+                        logger.LogError($"Invalid board from: ${dto.board.Signature.Identifier}.");
+                    }
                 }
                 catch (Exception ex)
                 {

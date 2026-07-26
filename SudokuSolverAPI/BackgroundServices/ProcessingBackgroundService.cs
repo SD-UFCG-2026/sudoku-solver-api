@@ -27,7 +27,9 @@ public class ProcessingBackgroundService(
                 var run = await lazyRunTask.Value;
 
                 var result = boardProcesserService.Process(run, dto.node);
+                logger.LogInformation($"Request from ${dto.node.Value.Signature.Identifier} in run ${dto.id} was processed successfully");
                 await boardPersisterService.SaveRun(result);
+                logger.LogInformation($"Request from ${dto.node.Value.Signature.Identifier} in run ${dto.id} was persisted successfully");
             }
             catch (Exception ex)
             {
