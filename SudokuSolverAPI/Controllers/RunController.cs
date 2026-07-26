@@ -45,6 +45,6 @@ public class RunController(
     {
         var allEntites = await persisterService.GetAll();
 
-        return Ok(allEntites);
+        return Ok(allEntites.Select(e => e.toDTO()));
     }
 }
