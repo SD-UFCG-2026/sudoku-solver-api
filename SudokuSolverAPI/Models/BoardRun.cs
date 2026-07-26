@@ -16,6 +16,6 @@ public class BoardRun(int id, BoardNode root)
 
     public RunDto toDTO()
     {
-        return new RunDto(Root.toDTO(), IsResolved, Final?.toDTO());
+        return new RunDto(Id, Root.toDTO(), IsResolved, Final?.toDTO());
     }
 }

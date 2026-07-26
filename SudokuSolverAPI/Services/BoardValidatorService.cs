@@ -12,19 +12,11 @@ public class BoardValidatorService: IBoardValidatorService
     {
         if (!SameLength(run, board)) return false;
 
-        Console.WriteLine($"Passei por aqui 1");
-
         string stringValue = board.SudokuVisualize;
-
-        Console.WriteLine($"Passei por aqui 2");
 
         if (!_processedHashes.TryAdd(stringValue, 0)) return false;
 
-        Console.WriteLine($"Passei por aqui 3");
-
         run.Boards.Add(stringValue);
-
-        Console.WriteLine($"Passei por aqui 4");
 
         return SameLength(run, board)
             && IsValid(board.Rows)

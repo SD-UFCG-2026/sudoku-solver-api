@@ -1,6 +1,6 @@
 namespace SudokuSolverAPI.DTOs;
 
-public record RunDto(NodeDto Root, bool IsFinished, NodeDto? Final)
+public record RunDto(int id, NodeDto Root, bool IsFinished, NodeDto? Final)
 {
 }
 
