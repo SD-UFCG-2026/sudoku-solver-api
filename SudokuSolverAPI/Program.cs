@@ -9,8 +9,6 @@ using SudokuSolverAPI.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
-string corsConfiguration = builder.Configuration["CORS_ORIGIN"] ?? "*";
-
 if (!int.TryParse(builder.Configuration["PERMIT_LIMIT"], out var permitLimit))
 {
     permitLimit = 10;
@@ -21,7 +19,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         policy =>
         {
-            policy.WithOrigins(corsConfiguration)
+            policy.AllowAnyOrigin()
                 .AllowAnyHeader()
                 .WithMethods("GET", "POST");
         });
