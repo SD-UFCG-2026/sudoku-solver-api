@@ -2,7 +2,6 @@ namespace SudokuSolverAPI.DTOs;
 
 public record RunDto(NodeDto Root, bool IsFinished, NodeDto? Final)
 {
-
 }
 
 /*

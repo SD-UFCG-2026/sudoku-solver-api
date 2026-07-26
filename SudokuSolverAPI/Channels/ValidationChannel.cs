@@ -9,7 +9,7 @@ public class ValidationChannel(IConfiguration configuration)
         new BoundedChannelOptions(
             configuration.GetValue("VALIDATION_CHANNEL_CAPACITY",1000))
         {
-            FullMode = BoundedChannelFullMode.DropWrite,
+            FullMode = BoundedChannelFullMode.Wait,
             SingleWriter = false,
             SingleReader = false
         });
