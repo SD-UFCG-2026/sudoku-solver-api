@@ -47,6 +47,12 @@ public class RunController(
     {
         var allEntites = await persisterService.GetAll();
 
-        return Ok(allEntites.Select(e => e.toDTO()));
+        foreach (var entities in allEntites)
+        {
+            entities.Root.Nodes.Clear();
+        }
+
+        return Ok(allEntites
+            .Select(e => e.toDTO()));
     }
 }
