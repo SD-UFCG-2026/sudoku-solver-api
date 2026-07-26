@@ -1,27 +1,15 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using SudokuSolverAPI.BackgroundServices;
-using SudokuSolverAPI.Channels;
-using SudokuSolverAPI.Controllers;
 using SudokuSolverAPI.DTOs;
-using SudokuSolverAPI.Interfaces;
-using SudokuSolverAPI.Services;
 using SudokuSolverAPI.Utils;
+using Xunit;
 
 namespace SudokuSolverAPI.Tests.E2E.Controllers;
 
-public class RunControllerE2ETests : IDisposable
+public class RunControllerE2ETests : E2ETests
 {
-    private readonly TestServer _server;
-    private readonly HttpClient _client;
-    private readonly IBoardPersisterService _persister;
     private readonly Signature _dummySignature = new("Gabael", "9ef9620b6f3f508a7ace91dc8f6ba9e375aecd4360fedeaf04ba561ae27fc51c");
 
     private readonly JsonSerializerOptions _jsonOptions = new()
@@ -29,60 +17,6 @@ public class RunControllerE2ETests : IDisposable
         PropertyNameCaseInsensitive = true,
         Converters = { new MultidimensionalArrayConverter() }
     };
-
-    public RunControllerE2ETests()
-    {
-        var inMemorySettings = new Dictionary<string, string> {
-            {"VALIDATION_WORKER_COUNT", "2"},
-            {"VALIDATION_CHANNEL_CAPACITY", "10"},
-            {"PROCESSING_CHANNEL_CAPACITY", "10"}
-        };
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(inMemorySettings!)
-            .Build();
-
-        var builder = new WebHostBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddSingleton<IConfiguration>(configuration);
-
-                services.AddControllers()
-                    .AddApplicationPart(typeof(RunController).Assembly)
-                    .AddJsonOptions(options =>
-                    {
-                        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-                        options.JsonSerializerOptions.Converters.Add(new MultidimensionalArrayConverter());
-                    });
-
-                services.AddSingleton<ValidationChannel>();
-                services.AddSingleton<ProcessingChannel>();
-
-                services.AddSingleton<IBoardPersisterService, BoardPersisterService>();
-                services.AddSingleton<IBoardValidatorService, BoardValidatorService>();
-                services.AddSingleton<IBoardProcesserService, BoardProcesserService>();
-
-                services.AddHostedService<ValidationBackgroundService>();
-                services.AddHostedService<ProcessingBackgroundService>();
-
-                services.AddLogging(l => l.ClearProviders());
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-            });
-
-        _server = new TestServer(builder);
-        _client = _server.CreateClient();
-
-        _persister = _server.Services.GetRequiredService<IBoardPersisterService>();
-    }
-
-    public void Dispose()
-    {
-        _client.Dispose();
-        _server.Dispose();
-    }
 
     [Fact]
     public async Task Post_WhenBoardIsValid_ShouldReturnAccepted_AndProcessEndToEnd()
@@ -97,7 +31,8 @@ public class RunControllerE2ETests : IDisposable
         };
         var rootNode = new BoardNode(new Board(rootBoardData, _dummySignature));
         var initialRun = new BoardRun(runId, rootNode) { Id = runId };
-        await _persister.SaveRun(initialRun);
+
+        await Persister.SaveRun(initialRun);
 
         int[,] evolutionBoardData = {
             { 1, 2, 0, 0 },
@@ -107,13 +42,12 @@ public class RunControllerE2ETests : IDisposable
         };
         var payload = new BoardDto(evolutionBoardData, _dummySignature);
 
-        var postResponse = await _client.PostAsJsonAsync($"/api/sudoku/{runId}", payload, _jsonOptions);
-
+        var postResponse = await Client.PostAsJsonAsync($"/api/sudoku/{runId}", payload, _jsonOptions);
         Assert.Equal(HttpStatusCode.Accepted, postResponse.StatusCode);
 
         await Task.Delay(300);
 
-        var getResponse = await _client.GetAsync($"/api/sudoku/{runId}");
+        var getResponse = await Client.GetAsync($"/api/sudoku/{runId}");
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
         var runDto = await getResponse.Content.ReadFromJsonAsync<RunDto>(_jsonOptions);
@@ -121,7 +55,6 @@ public class RunControllerE2ETests : IDisposable
         Assert.NotNull(runDto);
         Assert.NotNull(runDto.Root);
         Assert.False(runDto.IsFinished);
-
         Assert.Single(runDto.Root.Child);
 
         var childNode = runDto.Root.Child[0];
@@ -132,8 +65,7 @@ public class RunControllerE2ETests : IDisposable
     [Fact]
     public async Task Get_WhenIdDoesNotExist_ShouldReturnNotFound()
     {
-        var getResponse = await _client.GetAsync("/api/sudoku/999");
-
+        var getResponse = await Client.GetAsync("/api/sudoku/999");
         Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
     }
 
@@ -141,31 +73,13 @@ public class RunControllerE2ETests : IDisposable
     public async Task Post_WhenChannelCapacityIsExceeded_ShouldReturnTooManyRequests()
     {
         var limitedConfig = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string> {
+            .AddInMemoryCollection(new Dictionary<string, string?> {
+                {"MongoCollectionName", "test_runs"},
                 {"VALIDATION_CHANNEL_CAPACITY", "1"}
             })
             .Build();
 
-        var builder = new WebHostBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddSingleton<IConfiguration>(limitedConfig);
-                services.AddControllers()
-                    .AddApplicationPart(typeof(RunController).Assembly)
-                    .AddJsonOptions(options =>
-                    {
-                        options.JsonSerializerOptions.Converters.Add(new MultidimensionalArrayConverter());
-                    });
-                services.AddSingleton<ValidationChannel>();
-                services.AddSingleton<IBoardPersisterService, BoardPersisterService>();
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(e => e.MapControllers());
-            });
-
-        using var testServer = new TestServer(builder);
+        using var testServer = CreateTestServer(limitedConfig, Database, includeBackgroundServices: false);
         using var client = testServer.CreateClient();
 
         int[,] boardData = {
