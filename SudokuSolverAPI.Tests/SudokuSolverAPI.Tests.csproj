@@ -24,8 +24,4 @@
     <ProjectReference Include="..\SudokuSolverAPI\SudokuSolverAPI.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="E2E\" />
-  </ItemGroup>
-
 </Project>

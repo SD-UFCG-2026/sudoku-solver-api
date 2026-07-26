@@ -1,7 +1,7 @@
-using SudokuSolverAPI.Services;
 using SudokuSolverAPI.Interfaces;
+using SudokuSolverAPI.Services;
 
-namespace SudokuSolverAPI.Tests.Services;
+namespace SudokuSolverAPI.Tests.Unit.Services;
 
 public class BoardValidatorServiceTests
 {

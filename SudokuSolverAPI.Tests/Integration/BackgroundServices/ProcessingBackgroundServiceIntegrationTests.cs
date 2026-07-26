@@ -1,11 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
-
 using SudokuSolverAPI.BackgroundServices;
 using SudokuSolverAPI.Channels;
 using SudokuSolverAPI.Services;
 
-namespace SudokuSolverAPI.Tests.BackgroundServices;
+namespace SudokuSolverAPI.Tests.Integration.BackgroundServices;
 
 public class ProcessingBackgroundServiceIntegrationTests : IAsyncLifetime
 {
