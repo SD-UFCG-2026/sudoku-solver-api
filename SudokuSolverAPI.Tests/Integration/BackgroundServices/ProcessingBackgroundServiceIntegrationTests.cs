@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using SudokuSolverAPI.BackgroundServices;
 using SudokuSolverAPI.Channels;
@@ -6,26 +5,42 @@ using SudokuSolverAPI.Services;
 
 namespace SudokuSolverAPI.Tests.Integration.BackgroundServices;
 
-public class ProcessingBackgroundServiceIntegrationTests : IAsyncLifetime
+public class ProcessingBackgroundServiceIntegrationTests : MongoDbIntegrationTestBase
 {
     private readonly Signature? _dummySignature = null;
 
-    private readonly IConfiguration _config;
-    private readonly ProcessingChannel _processingChannel;
-    private readonly BoardPersisterService _persisterService;
-    private readonly BoardProcesserService _processerService;
-    private readonly ProcessingBackgroundService _backgroundService;
-    private readonly CancellationTokenSource _backgroundCts;
+    private ProcessingChannel _processingChannel = null!;
+    private BoardPersisterService _persisterService = null!;
+    private BoardProcesserService _processerService = null!;
+    private ProcessingBackgroundService _backgroundService = null!;
+    private CancellationTokenSource _backgroundCts = null!;
 
     private readonly BoardRun _defaultRun;
 
     public ProcessingBackgroundServiceIntegrationTests()
     {
-        _config = BuildTestConfiguration();
+        int[,] rootBoardData = {
+            { 1, 0, 0, 0 },
+            { 0, 0, 0, 0 },
+            { 0, 0, 0, 0 },
+            { 0, 0, 0, 0 }
+        };
+        var rootNode = new BoardNode(new Board(rootBoardData, _dummySignature!));
+        _defaultRun = new BoardRun(0, rootNode) { Id = 1 };
+    }
 
-        _processingChannel = new ProcessingChannel(_config);
+    protected override Dictionary<string, string?> GetCustomConfiguration() => new()
+    {
+        {"PROCESSING_CHANNEL_CAPACITY", "100"}
+    };
 
-        _persisterService = new BoardPersisterService();
+    public override async Task InitializeAsync()
+    {
+        await base.InitializeAsync();
+
+        _processingChannel = new ProcessingChannel(Configuration);
+
+        _persisterService = new BoardPersisterService(Database, Configuration);
         _processerService = new BoardProcesserService();
 
         _backgroundService = new ProcessingBackgroundService(
@@ -37,37 +52,17 @@ public class ProcessingBackgroundServiceIntegrationTests : IAsyncLifetime
 
         _backgroundCts = new CancellationTokenSource();
 
-        int[,] rootBoardData = {
-            { 1, 0, 0, 0 },
-            { 0, 0, 0, 0 },
-            { 0, 0, 0, 0 },
-            { 0, 0, 0, 0 }
-        };
-        var rootNode = new BoardNode(new Board(rootBoardData, _dummySignature!));
-
-        _defaultRun = new BoardRun(0, rootNode) { Id = 1 };
-    }
-
-    public async Task InitializeAsync()
-    {
         await _persisterService.SaveRun(_defaultRun);
         await _backgroundService.StartAsync(_backgroundCts.Token);
     }
 
-    public async Task DisposeAsync()
+    public override async Task DisposeAsync()
     {
         _backgroundCts.Cancel();
         await _backgroundService.StopAsync(CancellationToken.None);
-    }
 
-    private IConfiguration BuildTestConfiguration()
-    {
-        var inMemorySettings = new Dictionary<string, string> {
-            {"PROCESSING_CHANNEL_CAPACITY", "100"}
-        };
-        return new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
+        await base.DisposeAsync(); // Derruba Mongo
     }
-
 
     [Fact]
     public async Task ProcessData_ShouldAttachChildNodeToRoot()

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using SudokuSolverAPI.BackgroundServices;
 using SudokuSolverAPI.Channels;
@@ -7,41 +6,21 @@ using SudokuSolverAPI.Services;
 
 namespace SudokuSolverAPI.Tests.Integration.BackgroundServices;
 
-public class ValidationBackgroundServiceIntegrationTests : IAsyncLifetime
+public class ValidationBackgroundServiceIntegrationTests : MongoDbIntegrationTestBase
 {
     private readonly Signature? _dummySignature = null;
 
-    private readonly IConfiguration _config;
-    private readonly ValidationChannel _validationChannel;
-    private readonly ProcessingChannel _processingChannel;
-    private readonly BoardPersisterService _persisterService;
-    private readonly BoardValidatorService _validatorService;
-    private readonly ValidationBackgroundService _backgroundService;
-    private readonly CancellationTokenSource _backgroundCts;
+    private ValidationChannel _validationChannel = null!;
+    private ProcessingChannel _processingChannel = null!;
+    private BoardPersisterService _persisterService = null!;
+    private BoardValidatorService _validatorService = null!;
+    private ValidationBackgroundService _backgroundService = null!;
+    private CancellationTokenSource _backgroundCts = null!;
 
     private readonly BoardRun _defaultRun;
 
     public ValidationBackgroundServiceIntegrationTests()
     {
-        _config = BuildTestConfiguration();
-
-        _validationChannel = new ValidationChannel(_config);
-        _processingChannel = new ProcessingChannel(_config);
-
-        _persisterService = new BoardPersisterService();
-        _validatorService = new BoardValidatorService();
-
-        _backgroundService = new ValidationBackgroundService(
-            _validationChannel,
-            _processingChannel,
-            _validatorService,
-            _persisterService,
-            _config,
-            NullLogger<ValidationBackgroundService>.Instance
-        );
-
-        _backgroundCts = new CancellationTokenSource();
-
         int[,] rootBoardData = {
             { 1, 0, 0, 0 },
             { 0, 0, 0, 0 },
@@ -52,28 +31,46 @@ public class ValidationBackgroundServiceIntegrationTests : IAsyncLifetime
         _defaultRun = new BoardRun(0, rootNode) { Id = 1 };
     }
 
-    public async Task InitializeAsync()
+    protected override Dictionary<string, string?> GetCustomConfiguration() => new()
     {
+        {"VALIDATION_WORKER_COUNT", "2"},
+        {"VALIDATION_CHANNEL_CAPACITY", "10"},
+        {"PROCESSING_CHANNEL_CAPACITY", "10"}
+    };
+
+    public override async Task InitializeAsync()
+    {
+        // Sobe o banco de dados da classe base
+        await base.InitializeAsync();
+
+        _validationChannel = new ValidationChannel(Configuration);
+        _processingChannel = new ProcessingChannel(Configuration);
+
+        _persisterService = new BoardPersisterService(Database, Configuration);
+        _validatorService = new BoardValidatorService();
+
+        _backgroundService = new ValidationBackgroundService(
+            _validationChannel,
+            _processingChannel,
+            _validatorService,
+            _persisterService,
+            Configuration,
+            NullLogger<ValidationBackgroundService>.Instance
+        );
+
+        _backgroundCts = new CancellationTokenSource();
+
         await _persisterService.SaveRun(_defaultRun);
         await _backgroundService.StartAsync(_backgroundCts.Token);
     }
 
-    public async Task DisposeAsync()
+    public override async Task DisposeAsync()
     {
         _backgroundCts.Cancel();
         await _backgroundService.StopAsync(CancellationToken.None);
-    }
 
-    private IConfiguration BuildTestConfiguration()
-    {
-        var inMemorySettings = new Dictionary<string, string> {
-            {"VALIDATION_WORKER_COUNT", "2"},
-            {"VALIDATION_CHANNEL_CAPACITY", "10"},
-            {"PROCESSING_CHANNEL_CAPACITY", "10"}
-        };
-        return new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
+        await base.DisposeAsync();
     }
-
 
     [Fact]
     public async Task ValidBoard_ShouldProcessAndForward()
@@ -209,7 +206,7 @@ public class ValidationBackgroundServiceIntegrationTests : IAsyncLifetime
         }
         catch (OperationCanceledException)
         {
-            Assert.Fail();
+            Assert.Fail("Timeout on reading channel");
             throw;
         }
     }
