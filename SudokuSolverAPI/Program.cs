@@ -1,3 +1,4 @@
+using MongoDB.Driver;
 using SudokuSolverAPI.BackgroundServices;
 using SudokuSolverAPI.Channels;
 using SudokuSolverAPI.Controllers;
@@ -16,6 +17,17 @@ builder.Services.AddControllers()
         opt.JsonSerializerOptions.Converters.Add(new MultidimensionalArrayConverter());
     });
 builder.Services.AddOpenApi();
+
+string mongoConnectionString = builder.Configuration.GetConnectionString("MongoDb") ?? "mongodb://mongodb:27017";
+string mongoDatabaseName = builder.Configuration["MongoDatabaseName"] ?? "SudokuSolverDB";
+
+builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoConnectionString));
+
+builder.Services.AddSingleton<IMongoDatabase>(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    return client.GetDatabase(mongoDatabaseName);
+});
 
 builder.Services.AddSingleton<ValidationChannel>();
 builder.Services.AddSingleton<ProcessingChannel>();

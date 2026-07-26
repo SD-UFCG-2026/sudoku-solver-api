@@ -4,8 +4,8 @@ namespace SudokuSolverAPI;
 
 public class BoardNode(Board value)
 {
-    public Board Value { get; } = value;
-    public List<BoardNode> Nodes { get; } = [];
+    public Board Value { get; set; } = value;
+    public List<BoardNode> Nodes { get; set; } = [];
 
     public NodeDto toDTO()
     {

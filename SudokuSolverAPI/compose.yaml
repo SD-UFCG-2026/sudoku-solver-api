@@ -4,5 +4,17 @@
     build:
       context: .
       dockerfile: Dockerfile
+    env_file: .env
     ports:
       - "8080:8080"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo
+    container_name: mongodb
+    env_file: .env
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data:/data/db

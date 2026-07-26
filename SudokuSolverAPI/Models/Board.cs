@@ -4,7 +4,7 @@ namespace SudokuSolverAPI;
 
 public class Board(int[,] sudokuBoard, Signature signature)
 {
-    public int[,] SudokuBoard { get; } = sudokuBoard;
+    public int[,] SudokuBoard { get; set; } = sudokuBoard;
 
     public int Dimension => (int)Math.Sqrt(SudokuBoard.GetLength(0));
 
@@ -54,7 +54,7 @@ public class Board(int[,] sudokuBoard, Signature signature)
             return string.Join(' ', arr);
         }
     }
-    public Signature Signature { get; } = signature;
+    public Signature Signature { get; set; } = signature;
 
     public BoardDto toDTO()
     {
