@@ -22,7 +22,6 @@ public abstract class E2ETests : IAsyncLifetime
     protected IMongoDatabase Database = null!;
     protected IConfiguration Configuration = null!;
 
-    // Instâncias prontas para uso nos testes
     protected TestServer Server = null!;
     protected HttpClient Client = null!;
     protected IBoardPersisterService Persister = null!;
@@ -43,6 +42,8 @@ public abstract class E2ETests : IAsyncLifetime
 
     public virtual async Task InitializeAsync()
     {
+        MongoConfig.RegisterCustomSerializers();
+
         await MongoDbContainer.StartAsync();
 
         var mongoClient = new MongoClient(MongoDbContainer.GetConnectionString());

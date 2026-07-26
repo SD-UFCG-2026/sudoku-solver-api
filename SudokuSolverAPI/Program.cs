@@ -8,6 +8,7 @@ using SudokuSolverAPI.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
+MongoConfig.RegisterCustomSerializers();
 
 builder.Services.AddControllers()
     .AddApplicationPart(typeof(RunController).Assembly)

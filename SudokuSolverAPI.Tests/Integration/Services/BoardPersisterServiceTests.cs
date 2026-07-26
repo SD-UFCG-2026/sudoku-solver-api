@@ -69,6 +69,37 @@ public class BoardPersisterServiceTests : MongoDbIntegrationTestBase
         Assert.Equal(3, result.Id);
     }
 
+
+    [Fact]
+    public async Task Get_ShouldDeserializeMultidimensionalArray_AndNotThrowFormatException()
+    {
+        var rawBson = MongoDB.Bson.BsonDocument.Parse("""
+                                                      {
+                                                          "_id": 99,
+                                                          "Root": {
+                                                              "Value": {
+                                                                  "SudokuBoard": [[1, 2], [3, 4]],
+                                                                  "Signature": { "Identifier": "Test", "key": "abc" }
+                                                              },
+                                                              "Nodes": []
+                                                          },
+                                                          "IsResolved": false
+                                                      }
+                                                      """);
+
+        var rawCollection = Database.GetCollection<MongoDB.Bson.BsonDocument>("test_runs");
+        await rawCollection.InsertOneAsync(rawBson);
+
+        var service = CreateService();
+
+        var result = await service.Get(99);
+
+        Assert.NotNull(result);
+        Assert.NotNull(result.Root.Value.SudokuBoard);
+        Assert.Equal(1, result.Root.Value.SudokuBoard[0, 0]);
+        Assert.Equal(4, result.Root.Value.SudokuBoard[1, 1]);
+    }
+
     [Fact]
     public async Task Get_ShouldThrowKeyNotFoundException_WhenIdDoesNotExist()
     {

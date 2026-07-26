@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
+using SudokuSolverAPI.Utils;
 using Testcontainers.MongoDb;
 using Xunit;
 
@@ -23,6 +24,8 @@ public abstract class MongoDbIntegrationTestBase : IAsyncLifetime
 
     public virtual async Task InitializeAsync()
     {
+        MongoConfig.RegisterCustomSerializers();
+
         await MongoDbContainer.StartAsync();
 
         var client = new MongoClient(MongoDbContainer.GetConnectionString());
