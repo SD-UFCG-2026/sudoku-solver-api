@@ -10,16 +10,27 @@ public class BoardValidatorService: IBoardValidatorService
 
     public bool IsValid(BoardRun run, Board board)
     {
+        if (!SameLength(run, board)) return false;
+
         string stringValue = board.SudokuVisualize;
 
         if (!_processedHashes.TryAdd(stringValue, 0)) return false;
 
         run.Boards.Add(stringValue);
 
-        return IsValid(board.Rows)
+        return SameLength(run, board)
+            && IsValid(board.Rows)
             && IsValid(board.Cols)
             && IsValid(board.Qs)
             && Casuality.IsCasualTo(run.Root.Value, board);
+    }
+
+    private bool SameLength(BoardRun run, Board board)
+    {
+        return (run.Root.Value.SudokuBoard.GetLength(0)
+                    == board.SudokuBoard.GetLength(0))
+            && (run.Root.Value.SudokuBoard.GetLength(1)
+                    == board.SudokuBoard.GetLength(1));
     }
 
     private bool IsValid(int[,] lines)
