@@ -5,7 +5,7 @@
       PRIVATE_KEY: "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgSDsSR3QJ8hbYjcFN9Ahk+lh5yPMua5Z1dGwGPf6tW8OhRANCAATYUOL11+sPOk4ExTHKBhvhdqAsOjwzUA8vQcAEbjYETmmyt1deq8YeRLQPjunoxv1SQTiX8X95YuLhDJ6gV44m"
       PUBLIC_KEY: "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2FDi9dfrDzpOBMUxygYb4XagLDo8M1APL0HABG42BE5psrdXXqvGHkS0D47p6Mb9UkE4l/F/eWLi4QyeoFeOJg=="
       ID: "evertonTesteUm"
-      URL: "http://api:8080/api/sudoku/2"
+      URL: "http://api:8080/api/sudoku/3"
     networks:
       - sudoku-network
 
